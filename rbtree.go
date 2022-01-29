@@ -9,7 +9,7 @@ func NewRBMAP() *RBMAP {
 	return &RBMAP{}
 }
 
-type Color int
+type RBMAPColor int
 
 ///////////////////////////////////////////////////////////////////////////
 // 共通定義
@@ -17,21 +17,21 @@ type Color int
 
 // R:赤, B:黒, Error:debug 用
 const (
-	ColorR Color = iota
-	ColorB
-	ColorError
+	RBMAPColorR RBMAPColor = iota
+	RBMAPColorB
+	RBMAPColorError
 )
 
-type Node struct { // ノードの型
-	color Color // そのノードの色
-	key   int   // そのノードのキー
-	value int   // そのノードの値
-	lst   *Node // 左部分木
-	rst   *Node // 右部分木
+type RBMAPNode struct { // ノードの型
+	color RBMAPColor // そのノードの色
+	key   int        // そのノードのキー
+	value int        // そのノードの値
+	lst   *RBMAPNode // 左部分木
+	rst   *RBMAPNode // 右部分木
 }
 
-func NewNode(color Color, key int, value int) *Node {
-	return &Node{
+func NewNode(color RBMAPColor, key int, value int) *RBMAPNode {
+	return &RBMAPNode{
 		color: color,
 		key:   key,
 		value: value,
@@ -39,24 +39,24 @@ func NewNode(color Color, key int, value int) *Node {
 }
 
 type RBMAP struct {
-	root   *Node // 赤黒木の根
-	change bool  // 修正が必要かを示すフラグ(true:必要, false:不要)
-	lmax   int   // 左部分木のキーの最大値
-	value  int   // lmax に対応する値
+	root   *RBMAPNode // 赤黒木の根
+	change bool       // 修正が必要かを示すフラグ(true:必要, false:不要)
+	lmax   int        // 左部分木のキーの最大値
+	value  int        // lmax に対応する値
 }
 
 // ノード n が赤かチェックする
-func (n *Node) isR() bool {
-	return n != nil && n.color == ColorR
+func (n *RBMAPNode) isR() bool {
+	return n != nil && n.color == RBMAPColorR
 }
 
 // ノード n が黒かチェックする
-func (n *Node) isB() bool {
-	return n != nil && n.color == ColorB
+func (n *RBMAPNode) isB() bool {
+	return n != nil && n.color == RBMAPColorB
 }
 
 // ２分探索木 v の左回転。回転した木を返す
-func rotateL(v *Node) *Node {
+func rotateL(v *RBMAPNode) *RBMAPNode {
 	u := v.rst
 	t2 := u.lst
 	u.lst = v
@@ -65,7 +65,7 @@ func rotateL(v *Node) *Node {
 }
 
 // ２分探索木 u の右回転。回転した木を返す
-func rotateR(u *Node) *Node {
+func rotateR(u *RBMAPNode) *RBMAPNode {
 	v := u.lst
 	t2 := v.rst
 	v.rst = u
@@ -74,13 +74,13 @@ func rotateR(u *Node) *Node {
 }
 
 // ２分探索木 t の二重回転(左回転 -> 右回転)。回転した木を返す
-func rotateLR(t *Node) *Node {
+func rotateLR(t *RBMAPNode) *RBMAPNode {
 	t.lst = rotateL(t.lst)
 	return rotateR(t)
 }
 
 // ２分探索木 t の二重回転(右回転 -> 左回転)。回転した木を返す
-func rotateRL(t *Node) *Node {
+func rotateRL(t *RBMAPNode) *RBMAPNode {
 	t.rst = rotateR(t.rst)
 	return rotateL(t)
 }
@@ -92,13 +92,13 @@ func rotateRL(t *Node) *Node {
 // エントリー(key, x のペア)を挿入する
 func (m *RBMAP) Insert(key int, x int) {
 	m.root = m.insertSub(m.root, key, x)
-	m.root.color = ColorB
+	m.root.color = RBMAPColorB
 }
 
-func (m *RBMAP) insertSub(t *Node, key int, x int) *Node {
+func (m *RBMAP) insertSub(t *RBMAPNode, key int, x int) *RBMAPNode {
 	if t == nil {
 		m.change = true
-		return NewNode(ColorR, key, x)
+		return NewNode(RBMAPColorR, key, x)
 	}
 	cmp := 0
 	if key > t.key {
@@ -120,23 +120,23 @@ func (m *RBMAP) insertSub(t *Node, key int, x int) *Node {
 }
 
 // エントリー挿入に伴う赤黒木の修正(パターンマッチ)
-func (m *RBMAP) balance(t *Node) *Node {
+func (m *RBMAP) balance(t *RBMAPNode) *RBMAPNode {
 	if !m.change {
 		return t
 	} else if !t.isB() {
 		return t // 根が黒でないなら何もしない
 	} else if t.lst.isR() && t.lst.lst.isR() {
 		t = rotateR(t)
-		t.lst.color = ColorB
+		t.lst.color = RBMAPColorB
 	} else if t.lst.isR() && t.lst.rst.isR() {
 		t = rotateLR(t)
-		t.lst.color = ColorB
+		t.lst.color = RBMAPColorB
 	} else if t.rst.isR() && t.rst.lst.isR() {
 		t = rotateRL(t)
-		t.rst.color = ColorB
+		t.rst.color = RBMAPColorB
 	} else if t.rst.isR() && t.rst.rst.isR() {
 		t = rotateL(t)
-		t.rst.color = ColorB
+		t.rst.color = RBMAPColorB
 	} else {
 		m.change = false
 	}
@@ -151,11 +151,11 @@ func (m *RBMAP) balance(t *Node) *Node {
 func (m *RBMAP) Delete(key int) {
 	m.root = m.deleteSub(m.root, key)
 	if m.root != nil {
-		m.root.color = ColorB
+		m.root.color = RBMAPColorB
 	}
 }
 
-func (m *RBMAP) deleteSub(t *Node, key int) *Node {
+func (m *RBMAP) deleteSub(t *RBMAPNode, key int) *RBMAPNode {
 	if t == nil {
 		m.change = false
 		return nil
@@ -176,10 +176,10 @@ func (m *RBMAP) deleteSub(t *Node, key int) *Node {
 	} else {
 		if t.lst == nil {
 			switch t.color {
-			case ColorR:
+			case RBMAPColorR:
 				m.change = false
 				break
-			case ColorB:
+			case RBMAPColorB:
 				m.change = true
 				break
 			}
@@ -196,7 +196,7 @@ func (m *RBMAP) deleteSub(t *Node, key int) *Node {
 // 部分木 t の最大値のノードを削除する
 // 戻り値は削除により修正された部分木
 // 削除した最大値を lmax に保存する
-func (m *RBMAP) deleteMax(t *Node) *Node {
+func (m *RBMAP) deleteMax(t *RBMAPNode) *RBMAPNode {
 	if t.rst != nil {
 		t.rst = m.deleteMax(t.rst)
 		return m.balanceR(t)
@@ -204,10 +204,10 @@ func (m *RBMAP) deleteMax(t *Node) *Node {
 		m.lmax = t.key // 部分木のキーの最大値を保存
 		m.value = t.value
 		switch t.color {
-		case ColorR:
+		case RBMAPColorR:
 			m.change = false
 			break
-		case ColorB:
+		case RBMAPColorB:
 			m.change = true
 			break
 		}
@@ -217,7 +217,7 @@ func (m *RBMAP) deleteMax(t *Node) *Node {
 
 // 左部分木のノード削除に伴う赤黒木の修正(パターンマッチ)
 // 戻り値は修正された木
-func (m *RBMAP) balanceL(t *Node) *Node {
+func (m *RBMAP) balanceL(t *RBMAPNode) *RBMAPNode {
 	if !m.change {
 		return t // 修正なしと赤ノード削除の場合はここ
 
@@ -225,24 +225,24 @@ func (m *RBMAP) balanceL(t *Node) *Node {
 		rb := t.color
 		t = rotateRL(t)
 		t.color = rb
-		t.lst.color = ColorB
+		t.lst.color = RBMAPColorB
 		m.change = false
 	} else if t.rst.isB() && t.rst.rst.isR() {
 		rb := t.color
 		t = rotateL(t)
 		t.color = rb
-		t.lst.color = ColorB
-		t.rst.color = ColorB
+		t.lst.color = RBMAPColorB
+		t.rst.color = RBMAPColorB
 		m.change = false
 	} else if t.rst.isB() {
 		rb := t.color
-		t.color = ColorB
-		t.rst.color = ColorR
-		m.change = (rb == ColorB)
+		t.color = RBMAPColorB
+		t.rst.color = RBMAPColorR
+		m.change = (rb == RBMAPColorB)
 	} else if t.rst.isR() {
 		t = rotateL(t)
-		t.color = ColorB
-		t.lst.color = ColorR
+		t.color = RBMAPColorB
+		t.lst.color = RBMAPColorR
 		t.lst = m.balanceL(t.lst)
 		m.change = false
 	} else { // 黒ノード削除の場合、ここはありえない
@@ -253,31 +253,31 @@ func (m *RBMAP) balanceL(t *Node) *Node {
 
 // 右部分木のノード削除に伴う赤黒木の修正(パターンマッチ)
 // 戻り値は修正された木
-func (m *RBMAP) balanceR(t *Node) *Node {
+func (m *RBMAP) balanceR(t *RBMAPNode) *RBMAPNode {
 	if !m.change {
 		return t // 修正なしと赤ノード削除の場合はここ
 	} else if t.lst.isB() && t.lst.rst.isR() {
 		rb := t.color
 		t = rotateLR(t)
 		t.color = rb
-		t.rst.color = ColorB
+		t.rst.color = RBMAPColorB
 		m.change = false
 	} else if t.lst.isB() && t.lst.lst.isR() {
 		rb := t.color
 		t = rotateR(t)
 		t.color = rb
-		t.lst.color = ColorB
-		t.rst.color = ColorB
+		t.lst.color = RBMAPColorB
+		t.rst.color = RBMAPColorB
 		m.change = false
 	} else if t.lst.isB() {
 		rb := t.color
-		t.color = ColorB
-		t.lst.color = ColorR
-		m.change = (rb == ColorB)
+		t.color = RBMAPColorB
+		t.lst.color = RBMAPColorR
+		m.change = (rb == RBMAPColorB)
 	} else if t.lst.isR() {
 		t = rotateR(t)
-		t.color = ColorB
-		t.rst.color = ColorR
+		t.color = RBMAPColorB
+		t.rst.color = RBMAPColorR
 		t.rst = m.balanceR(t.rst)
 		m.change = false
 	} else { // 黒ノード削除の場合、ここはありえない
@@ -387,7 +387,7 @@ func (m *RBMAP) Max() int {
 	return t.key
 }
 
-func (m *RBMAP) keysSub(t *Node, al []int) []int {
+func (m *RBMAP) keysSub(t *RBMAPNode, al []int) []int {
 	if t != nil {
 		al = m.keysSub(t.lst, al)
 		al = append(al, t.key)
@@ -396,7 +396,7 @@ func (m *RBMAP) keysSub(t *Node, al []int) []int {
 	return al
 }
 
-func (m *RBMAP) valuesSub(t *Node, al []int) []int {
+func (m *RBMAP) valuesSub(t *RBMAPNode, al []int) []int {
 	if t != nil {
 		al = m.valuesSub(t.lst, al)
 		al = append(al, t.value)
@@ -421,7 +421,7 @@ func (m *RBMAP) Balanced() bool {
 
 // 赤黒木の配色が正しいか確認する
 func (m *RBMAP) ColorValid() bool {
-	return m.colorChain(m.root) == ColorB
+	return m.colorChain(m.root) == RBMAPColorB
 }
 
 // ２分探索木になっているか確認する
@@ -429,15 +429,15 @@ func (m *RBMAP) BstValid() bool {
 	return m.bstValidSub(m.root)
 }
 
-func (m *RBMAP) toGraph(head string, bar string, t *Node) string {
+func (m *RBMAP) toGraph(head string, bar string, t *RBMAPNode) string {
 	graph := ""
 	if t != nil {
 		graph += m.toGraph(head+"　　", "／", t.rst)
 		node := ""
 		switch t.color {
-		case ColorR:
+		case RBMAPColorR:
 			node = "R"
-		case ColorB:
+		case RBMAPColorB:
 			node = "B"
 		}
 		node += fmt.Sprintf(":%v:%v", t.key, t.value)
@@ -447,7 +447,7 @@ func (m *RBMAP) toGraph(head string, bar string, t *Node) string {
 	return graph
 }
 
-func (m *RBMAP) blackHeight(t *Node) int {
+func (m *RBMAP) blackHeight(t *RBMAPNode) int {
 	if t == nil {
 		return 0
 	}
@@ -456,32 +456,32 @@ func (m *RBMAP) blackHeight(t *Node) int {
 	if nl < 0 || nr < 0 || nl != nr {
 		return -1
 	}
-	if t.color == ColorB {
+	if t.color == RBMAPColorB {
 		return nl + 1
 	}
 	return nl
 }
 
-func (m *RBMAP) colorChain(t *Node) Color {
+func (m *RBMAP) colorChain(t *RBMAPNode) RBMAPColor {
 	if t == nil {
-		return ColorB
+		return RBMAPColorB
 	}
 	p := t.color
 	cl := m.colorChain(t.lst)
 	cr := m.colorChain(t.rst)
-	if cl == ColorError || cr == ColorError {
-		return ColorError
+	if cl == RBMAPColorError || cr == RBMAPColorError {
+		return RBMAPColorError
 	}
-	if p == ColorB {
+	if p == RBMAPColorB {
 		return p
 	}
-	if p == ColorR && cl == ColorB && cr == ColorB {
+	if p == RBMAPColorR && cl == RBMAPColorB && cr == RBMAPColorB {
 		return p
 	}
-	return ColorError
+	return RBMAPColorError
 }
 
-func (m *RBMAP) bstValidSub(t *Node) bool {
+func (m *RBMAP) bstValidSub(t *RBMAPNode) bool {
 	if t == nil {
 		return true
 	}
@@ -489,7 +489,7 @@ func (m *RBMAP) bstValidSub(t *Node) bool {
 	return flag && m.bstValidSub(t.lst) && m.bstValidSub(t.rst)
 }
 
-func (m *RBMAP) small(key int, t *Node) bool {
+func (m *RBMAP) small(key int, t *RBMAPNode) bool {
 	if t == nil {
 		return true
 	}
@@ -497,7 +497,7 @@ func (m *RBMAP) small(key int, t *Node) bool {
 	return flag && m.small(key, t.lst) && m.small(key, t.rst)
 }
 
-func (m *RBMAP) large(key int, t *Node) bool {
+func (m *RBMAP) large(key int, t *RBMAPNode) bool {
 	if t == nil {
 		return true
 	}
