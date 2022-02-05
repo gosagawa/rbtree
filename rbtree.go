@@ -312,6 +312,32 @@ func (m *RBMAP) Member(key int) bool {
 	return false
 }
 
+// 指定されたキーより大きいキーの検索
+func (m *RBMAP) UpperBound(key int) (int, bool) {
+	t := m.root
+	r := 0
+	hasKey := false
+	for t != nil {
+		cmp := 0
+		if key > t.key {
+			cmp = 1
+		}
+		if key < t.key {
+			cmp = -1
+		}
+		if cmp < 0 {
+			if !hasKey || t.key < r {
+				hasKey = true
+				r = t.key
+			}
+			t = t.lst
+		} else {
+			t = t.rst
+		}
+	}
+	return r, hasKey
+}
+
 // キーから値を得る。キーがヒットしない場合は nil を返す
 func (m *RBMAP) Lookup(key int) int {
 	t := m.root

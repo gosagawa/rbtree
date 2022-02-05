@@ -98,3 +98,37 @@ func TestMain(t *testing.T) {
 		t.Error("全削除: NG")
 	}
 }
+
+func TestUpperBound(t *testing.T) {
+	m := rbtree.NewRBMAP()
+	m.Insert(1, 1)
+	m.Insert(3, 1)
+	m.Insert(5, 1)
+
+	cases := map[string]struct {
+		v      int
+		r      int
+		hasKey bool
+	}{
+		"0": {0, 1, true},
+		"1": {1, 3, true},
+		"2": {2, 3, true},
+		"3": {3, 5, true},
+		"4": {4, 5, true},
+		"5": {5, 0, false},
+		"6": {6, 0, false},
+	}
+
+	for k, tt := range cases {
+		tt := tt
+		t.Run(k, func(t *testing.T) {
+			r, hasKey := m.UpperBound(tt.v)
+			if r != tt.r {
+				t.Errorf("r exspected %v but %v", tt.r, r)
+			}
+			if hasKey != tt.hasKey {
+				t.Errorf("hasKey exspected %v but %v", tt.r, r)
+			}
+		})
+	}
+}
