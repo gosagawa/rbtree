@@ -132,3 +132,37 @@ func TestUpperBound(t *testing.T) {
 		})
 	}
 }
+
+func TestLowerBound(t *testing.T) {
+	m := rbtree.NewRBMAP()
+	m.Insert(1, 1)
+	m.Insert(3, 1)
+	m.Insert(5, 1)
+
+	cases := map[string]struct {
+		v      int
+		l      int
+		hasKey bool
+	}{
+		"0": {0, 0, false},
+		"1": {1, 0, false},
+		"2": {2, 1, true},
+		"3": {3, 1, true},
+		"4": {4, 3, true},
+		"5": {5, 3, true},
+		"6": {6, 5, true},
+	}
+
+	for k, tt := range cases {
+		tt := tt
+		t.Run(k, func(t *testing.T) {
+			l, hasKey := m.LowerBound(tt.v)
+			if l != tt.l {
+				t.Errorf("l exspected %v but %v", tt.l, l)
+			}
+			if hasKey != tt.hasKey {
+				t.Errorf("hasKey exspected %v but %v", tt.l, l)
+			}
+		})
+	}
+}

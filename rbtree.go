@@ -107,6 +107,7 @@ func (m *RBMAP) insertSub(t *RBMAPNode, key int, x int) *RBMAPNode {
 	if key < t.key {
 		cmp = -1
 	}
+	// cmp > 0 を cmp >= 0にするとmultisetになる
 	if cmp < 0 {
 		t.lst = m.insertSub(t.lst, key, x)
 		return m.balance(t)
@@ -336,6 +337,32 @@ func (m *RBMAP) UpperBound(key int) (int, bool) {
 		}
 	}
 	return r, hasKey
+}
+
+// 指定されたキーより小さいキーの検索
+func (m *RBMAP) LowerBound(key int) (int, bool) {
+	t := m.root
+	l := 0
+	hasKey := false
+	for t != nil {
+		cmp := 0
+		if key > t.key {
+			cmp = 1
+		}
+		if key < t.key {
+			cmp = -1
+		}
+		if cmp > 0 {
+			if !hasKey || t.key > l {
+				hasKey = true
+				l = t.key
+			}
+			t = t.rst
+		} else {
+			t = t.lst
+		}
+	}
+	return l, hasKey
 }
 
 // キーから値を得る。キーがヒットしない場合は nil を返す
