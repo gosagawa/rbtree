@@ -95,6 +95,10 @@ func (m *RBMAP) Insert(key int, x int) {
 	m.root.color = RBMAPColorB
 }
 
+func (m *RBMAP) Increment(key int) {
+	m.Insert(key, m.Lookup(key)+1)
+}
+
 func (m *RBMAP) insertSub(t *RBMAPNode, key int, x int) *RBMAPNode {
 	if t == nil {
 		m.change = true
@@ -153,6 +157,16 @@ func (m *RBMAP) Delete(key int) {
 	m.root = m.deleteSub(m.root, key)
 	if m.root != nil {
 		m.root.color = RBMAPColorB
+	}
+}
+
+func (m *RBMAP) Decrement(key int) {
+	count := m.Lookup(key)
+	count--
+	if count <= 0 {
+		m.Delete(key)
+	} else {
+		m.Insert(key, count)
 	}
 }
 
